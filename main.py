@@ -5,12 +5,13 @@ import os
 import pandas as pd
 import logging
 import csv
+import re
 
 BASE_DIR = os.path.dirname(os.path.abspath('__file__'))
 DATA_DIR = BASE_DIR + "/data/"
 FILE_NAME = 'WEOApr2015all.csv'
 OUT_FILE_NAME = 'all.csv'
-
+DDF_SUBJECT = "ddf--weo--subject.csv"
 
 class Controller:
     def __init__(self):
@@ -24,6 +25,8 @@ class Controller:
         self.country = self._get_country()
         self.subject_descriptor = self._get_subject_descriptor()
         self.geo_country = pd.read_csv(DATA_DIR + "/ddf--list--geo--country.csv", header=0, sep=',')
+        self._make_weo_subject()
+        self.ddffiles = ['1']
 
         self._get_slicer_by_sub_con()
 
@@ -41,10 +44,27 @@ class Controller:
         country_name = self._get_country_name_by_iso(iso)
         df1['geo'] = df1.apply(lambda x: iso, axis=1)
         df1['geo.name'] = df1.apply(lambda x: country_name, axis=1)
-        print(df1[0:2])
         df1.reset_index(level=0, inplace=True) #clear all index
         df1.columns = ['year', self.subject_descriptor[0][0], 'geo', 'geo.name']
-        print(df1)
+        print(df1[0:2])
+
+    def _make_weo_subject(self):
+        self.logger.info("start _make_weo_subject ...")
+        out_array = []
+        g = self.df0.groupby(['WEOSubjectCode', 'SubjectDescriptor', 'SubjectNotes', 'Units', 'Scale']).groups
+        for item in g:
+#            new_item = []
+#            for elem in item:
+#                elem = re.sub(r",", ',', elem)
+#                new_item.append(elem)
+            out_array.append(item)
+        headers = ['weo_subject_code', 'subject_descriptor', 'subject_notes', 'units', 'scale']
+        df2 = pd.DataFrame.from_records(out_array, columns = headers)
+        print(self.ddffiles) #.append(DDF_SUBJECT)
+        df2.to_csv(DATA_DIR + "/" + DDF_SUBJECT, mode='w', header=True, index=False, encoding='utf-8', sep=',')
+
+        return out_array
+
 
     def _get_subject_name_by_code(self, code):
         pass
@@ -59,7 +79,6 @@ class Controller:
         self.logger.info("start _get_country ...")
         out_array = []
         g = self.df0.groupby(['ISO']).groups
-        print("Country ISO: ", g)
         for country in g:
             out_array.append(country)
         return out_array
@@ -69,7 +88,6 @@ class Controller:
         out_array = []
         g = self.df0.groupby(['WEOSubjectCode', 'SubjectDescriptor']).groups
         for subject in g:
-            print(subject)
             out_array.append(subject)
         return out_array
 
