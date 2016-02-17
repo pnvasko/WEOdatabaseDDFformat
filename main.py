@@ -27,28 +27,33 @@ class Controller:
 
         self._get_slicer_by_sub_con()
 
-    def _get_country_name_by_iso(self, iso):
-        self.logger.info("start _get_country_name_by_iso %s ... " %iso)
-        df0 = self.geo_country.query('geo == "%s"' %(iso.lower()))
-        name = df0.head(1).name.values[0]
-
-        return name
-
     def _get_slicer_by_sub_con(self):
-        iso = self.country[0]
-        df1 = self.df0.query('(ISO == "%s") & (WEOSubjectCode == "%s")' %(iso, self.subject_descriptor[0]))
+        iso = self.country[3]
+        code = self.subject_descriptor[11][0]
+        print(code)
+        df1 = self.df0.query('(ISO == "%s") & (WEOSubjectCode == "%s")' %(iso, code))
         df1 = pd.DataFrame(df1, columns = ['1980', '1981', '1982', '1983', '1984', '1985', '1986', '1987', '1988', '1989',
                      '1990', '1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999',
                      '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009',
                      '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019',
                      '2020'])
-        print(df1)
         df1 = df1.transpose()
         country_name = self._get_country_name_by_iso(iso)
-        df1['geo'] = df1.apply(lambda x: self.country[0], axis=1)
+        df1['geo'] = df1.apply(lambda x: iso, axis=1)
         df1['geo.name'] = df1.apply(lambda x: country_name, axis=1)
+        print(df1[0:2])
+        df1.reset_index(level=0, inplace=True) #clear all index
+        df1.columns = ['year', self.subject_descriptor[0][0], 'geo', 'geo.name']
         print(df1)
 
+    def _get_subject_name_by_code(self, code):
+        pass
+
+    def _get_country_name_by_iso(self, iso):
+        self.logger.info("start _get_country_name_by_iso %s ... " %iso)
+        df0 = self.geo_country.query('geo == "%s"' %(iso.lower()))
+        name = df0.head(1).name.values[0]
+        return name
 
     def _get_country(self):
         self.logger.info("start _get_country ...")
@@ -62,8 +67,9 @@ class Controller:
     def _get_subject_descriptor(self):
         self.logger.info("start _get_subject_descriptor ...")
         out_array = []
-        g = self.df0.groupby('WEOSubjectCode').groups
+        g = self.df0.groupby(['WEOSubjectCode', 'SubjectDescriptor']).groups
         for subject in g:
+            print(subject)
             out_array.append(subject)
         return out_array
 

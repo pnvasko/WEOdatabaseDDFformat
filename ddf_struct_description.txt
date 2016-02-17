@@ -1,0 +1,26 @@
+1. ddf--index.csv:
+
+file	                                                                value_concept	                geo	        time
+------------------------------------------------------------------------------------------------------------------------
+ddf--data_for--child_mortality_rate_per1000--by--country--year.csv	    child_mortality_rate_per1000	country	    year
+------------------------------------------------------------------------------------------------------------------------
+
+2. ddf--weo--subject.csv
+
+weo subject code    subject descriptor      subject notes       units   scale
+------------------------------------------------------------------------------------------------------------------------
+
+
+3. ddf-weo--country--series--specific--Notes.csv
+
+weo subject code    geo     country-series-specific-notes
+------------------------------------------------------------------------------------------------------------------------
+
+4. ddf--weo--data_for--estimates-start-after--country--subject descriptor.csv
+
+weo subject code    geo     country-estimates-start-after
+------------------------------------------------------------------------------------------------------------------------
+
+5. ddf--weo--data_for--(weo subject descriptor)--country--year.csv
+
+geo    geo.name     year    weo-subject-descriptor
