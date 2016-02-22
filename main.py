@@ -11,10 +11,7 @@ import re
 base_dir = os.path.dirname(os.path.abspath(__file__))
 SETTINGS = {'BASE_DIR': base_dir,
             'DATA_DIR': base_dir + "/data",
-            'CSSN_DIR': 'country_series_specific_notes',
-            'CESA_DIR': 'country_estimates_start_after',
-            'CYSD_DIR': 'country_year_subject_descriptor',
-            'FILE_NAME': 'WEOApr2015all.csv',
+            'FILE_NAME': 'WEOApr2015all.xls',
             'GEO_COUNTRY': 'ddf--list--geo--country.csv',
             'DDF_INDEX': "ddf--index.csv",
             'DDF_SUBJECT': "ddf--weo--subject.csv",
@@ -29,7 +26,6 @@ class Controller:
         self.settings = self._get_settings()
         self.ddffiles = []
         self._init_data_folders()
-        self.geo_country = pd.read_csv(self.settings['DATA_DIR'] + "/" + self.settings['GEO_COUNTRY'], header=0, sep=',')
         self.df0 = self.load_input_file(self.settings['BASE_DIR'] + "/" + self.settings['FILE_NAME'])
         self.country = self._get_country()
         self.subject_descriptor = self._get_subject_descriptor()
@@ -50,9 +46,9 @@ class Controller:
             df1.columns = ['weo_subject_code', 'geo', 'country_series_specific_notes']
             file_name = self.settings['DDF_Country_Series_Specific_Notes'][0] + subject[0] + self.settings['DDF_Country_Series_Specific_Notes'][1]
             self.ddffiles.append([file_name, "weo_subject_descriptor_country_series_specific_notes", "country", ""])
-            file_name = "%s/%s/%s" \
-                        % (self.settings['DATA_DIR'], self.settings['CSSN_DIR'], file_name)
-            df1.to_csv(file_name, mode='w', header=True, index=False, encoding='utf-8', sep=',')
+            file_name = "%s/%s" \
+                        % (self.settings['DATA_DIR'], file_name)
+            df1.to_csv(file_name, mode='w', header=True, index=False, sep=',')
 
     def _get_estimates_start_by_country_subject(self):
         self.logger.info("start _get_estimates_start_by_country_subject ...")
@@ -62,9 +58,9 @@ class Controller:
             df1.columns = ['weo_subject_code', 'geo', 'estimates_start_after']
             file_name = self.settings['DDF_Estimates_Start'][0] + subject[0] + self.settings['DDF_Estimates_Start'][1]
             self.ddffiles.append([file_name, "weo_subject_descriptor_country_estimates_start_after", "country", ""])
-            file_name = "%s/%s/%s" \
-                        % (self.settings['DATA_DIR'], self.settings['CESA_DIR'], file_name)
-            df1.to_csv(file_name, mode='w', header=True, index=False, encoding='utf-8', sep=',')
+            file_name = "%s/%s" \
+                        % (self.settings['DATA_DIR'], file_name)
+            df1.to_csv(file_name, mode='w', header=True, index=False, sep=',')
 
     def _get_slicer_subject_country(self):
         self.logger.info("start _get_slicer_subject_country ...")
@@ -88,10 +84,10 @@ class Controller:
                         self.settings['DDF_Country_Subject_Descriptor'][1]
             self.ddffiles.append([file_name, "weo_subject_descriptor_country_year", "country", "year"])
             df2 = pd.concat(frames)
-            file_name = "%s/%s/%s" \
-                        % (self.settings['DATA_DIR'], self.settings['CYSD_DIR'], file_name)
+            file_name = "%s/%s" \
+                        % (self.settings['DATA_DIR'], file_name)
 
-            df2.to_csv(file_name, mode='w', header=True, index=False, encoding='utf-8', sep=',')
+            df2.to_csv(file_name, mode='w', header=True, index=False, sep=',')
 
     def _make_index(self):
         self.logger.info("start _make_index ...")
@@ -111,12 +107,6 @@ class Controller:
         self.ddffiles.append([self.settings['DDF_SUBJECT'], "weo_subject_descriptor"])
         df2.to_csv(self.settings['DATA_DIR'] + "/" + self.settings['DDF_SUBJECT'], mode='w', header=True, index=False, encoding='utf-8', sep=',')
         return out_array
-
-    def _get_country_name_by_iso(self, iso):
-        self.logger.info("start _get_country_name_by_iso %s ... " %iso)
-        df0 = self.geo_country.query('geo == "%s"' %(iso.lower()))
-        name = df0.head(1).name.values[0]
-        return name
 
     def _get_country(self):
         self.logger.info("start _get_country ...")
@@ -138,10 +128,10 @@ class Controller:
         self.logger.info("Load input file ...")
         csv_date = []
         i = 0
-        with open(filename, "r") as file:
+        with open(filename, "r", encoding='Latin-1') as file:
             reader = csv.reader(file, delimiter='\t')
             for row in reader:
-                if i>0:
+                if i>0 and len(row) == 51:
                     csv_date.append(row)
                 i += 1
         if csv_date:
@@ -160,15 +150,6 @@ class Controller:
         if not os.path.exists(self.settings['DATA_DIR']):
             if not os.path.isdir(self.settings['DATA_DIR']):
                 os.mkdir(self.settings['DATA_DIR'])
-        if not os.path.exists(self.settings['DATA_DIR'] +"/" + self.settings['CSSN_DIR']):
-            if not os.path.isdir(self.settings['DATA_DIR'] +"/" + self.settings['CSSN_DIR']):
-                os.mkdir(self.settings['DATA_DIR'] +"/" + self.settings['CSSN_DIR'])
-        if not os.path.exists(self.settings['DATA_DIR'] +"/" + self.settings['CESA_DIR']):
-            if not os.path.isdir(self.settings['DATA_DIR'] +"/" + self.settings['CESA_DIR']):
-                os.mkdir(self.settings['DATA_DIR'] +"/" + self.settings['CESA_DIR'])
-        if not os.path.exists(self.settings['DATA_DIR'] +"/" + self.settings['CYSD_DIR']):
-            if not os.path.isdir(self.settings['DATA_DIR'] +"/" + self.settings['CYSD_DIR']):
-                os.mkdir(self.settings['DATA_DIR'] +"/" + self.settings['CYSD_DIR'])
 
 
     def _get_settings(self):
